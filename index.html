@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
+    <title>Game Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             touch-action: manipulation; /* Prevent double tap zoom on mobile */
+            background-color: #f8fafc; /* bg-slate-50 from original game, applied to portal body */
+            color: #1e293b; /* text-slate-800 from original game */
         }
+
+        /* Styles from original Tic Tac Toe game */
         .cell {
             width: 100px;
             height: 100px;
@@ -22,7 +27,7 @@
             border: 2px solid #cbd5e1; /* slate-300 */
             transition: background-color 0.2s ease-in-out;
         }
-        .cell:hover:not(.disabled) { /* Only hover effect if not disabled */
+        .cell:hover:not(.disabled) {
             background-color: #f1f5f9; /* slate-100 */
         }
         .cell.disabled {
@@ -32,7 +37,6 @@
             background-color: #a7f3d0 !important; /* emerald-200 */
             color: #065f46 !important; /* emerald-800 */
         }
-        /* Custom modal styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -64,25 +68,18 @@
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
-
-        /* Ensure board is centered and scales reasonably on smaller screens */
         .board-container {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.5rem; /* 8px */
+            gap: 0.5rem;
             width: 100%;
-            max-width: 320px; /* Adjust as needed */
+            max-width: 320px;
             margin: 1rem auto;
         }
         @media (max-width: 400px) {
-            .cell {
-                font-size: 2.5rem; /* Slightly smaller font for very small screens */
-            }
-            .board-container {
-                gap: 0.25rem; /* 4px */
-            }
+            .cell { font-size: 2.5rem; }
+            .board-container { gap: 0.25rem; }
         }
-        /* Styling for game mode selection */
         .game-mode-selector label {
             cursor: pointer;
             padding: 0.5rem 1rem;
@@ -95,195 +92,218 @@
             color: white;
             border-color: #0ea5e9; /* sky-500 */
         }
-         .game-mode-selector input[type="radio"] {
-            display: none; /* Hide the actual radio button */
+        .game-mode-selector input[type="radio"] {
+            display: none;
         }
 
+        /* Styles for Game Portal */
+        .game-card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); /* shadow-lg */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            overflow: hidden; /* To contain the image nicely */
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); /* shadow-2xl */
+        }
+        .game-card img {
+            width: 100%;
+            height: 160px; /* Fixed height for card image */
+            object-fit: cover;
+        }
+        .hidden {
+            display: none !important;
+        }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-slate-50 text-slate-800 flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center min-h-screen p-4">
 
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md">
-        <header class="text-center mb-6">
-            <h1 class="text-4xl font-bold text-sky-600">Tic Tac Toe</h1>
+    <div id="gamesListPage" class="w-full max-w-4xl">
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-sky-700">Game Portal</h1>
         </header>
-
-        <main>
-            <div class="game-mode-selector flex justify-center space-x-2 mb-6">
-                <input type="radio" id="pvp" name="gameMode" value="pvp" checked>
-                <label for="pvp" class="hover:bg-slate-100">Player vs Player</label>
-
-                <input type="radio" id="pvc" name="gameMode" value="pvc">
-                <label for="pvc" class="hover:bg-slate-100">Player vs Computer</label>
-            </div>
-
-            <div id="status" class="text-center text-xl font-semibold mb-4 h-8 text-slate-700">Player X's turn</div>
-
-            <div id="board" class="board-container">
+        <div id="gameCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div id="ticTacToeCard" class="game-card">
+                <img src="https://placehold.co/600x400/0ea5e9/ffffff?text=Tic+Tac+Toe&font=inter" alt="Tic Tac Toe Game" class="border-b border-slate-200">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold text-sky-600 mb-2">Tic Tac Toe</h2>
+                    <p class="text-slate-600 text-sm">The classic game of X's and O's. Play against a friend or the computer!</p>
                 </div>
-
-            <div class="mt-8 text-center">
-                <button id="resetButton" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50">
-                    Restart Game
-                </button>
             </div>
-        </main>
-    </div>
-
-    <div id="messageModal" class="modal-overlay">
-        <div class="modal-content">
-            <p id="modalMessageText" class="text-2xl font-semibold mb-6"></p>
-            <button id="modalCloseButton" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
-                Play Again
-            </button>
+            <!-- Example:
+            <div class="game-card opacity-50 cursor-not-allowed">
+                <img src="https://placehold.co/600x400/94a3b8/ffffff?text=Coming+Soon&font=inter" alt="Coming Soon" class="border-b border-slate-200">
+                <div class="p-6">
+                    <h2 class="text-2xl font-semibold text-slate-400 mb-2">Another Game</h2>
+                    <p class="text-slate-500 text-sm">This game is not yet available. Check back later!</p>
+                </div>
+            </div>
+            -->
         </div>
     </div>
 
-    <footer class="text-center mt-8 text-slate-500 text-sm">
-        <p>Built with HTML, Tailwind CSS, and JavaScript.</p>
-    </footer>
+    <div id="ticTacToeGameContainer" class="hidden w-full flex flex-col items-center">
+        <button id="backToGamesButton" class="mb-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+            &larr; Back to Games
+        </button>
+
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <header class="text-center mb-6">
+                <h1 class="text-4xl font-bold text-sky-600">Tic Tac Toe</h1>
+            </header>
+            <main>
+                <div class="game-mode-selector flex justify-center space-x-2 mb-6">
+                    <input type="radio" id="pvp" name="gameMode" value="pvp" checked>
+                    <label for="pvp" class="hover:bg-slate-100">Player vs Player</label>
+                    <input type="radio" id="pvc" name="gameMode" value="pvc">
+                    <label for="pvc" class="hover:bg-slate-100">Player vs Computer</label>
+                </div>
+                <div id="status" class="text-center text-xl font-semibold mb-4 h-8 text-slate-700">Player X's turn</div>
+                <div id="board" class="board-container">
+                    </div>
+                <div class="mt-8 text-center">
+                    <button id="resetButton" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50">
+                        Restart Game
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <div id="messageModal" class="modal-overlay">
+            <div class="modal-content">
+                <p id="modalMessageText" class="text-2xl font-semibold mb-6"></p>
+                <button id="modalCloseButton" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
+                    Play Again
+                </button>
+            </div>
+        </div>
+        <footer class="text-center mt-8 text-slate-500 text-sm">
+            <p>Tic Tac Toe: Built with HTML, Tailwind CSS, and JavaScript.</p>
+        </footer>
+    </div>
 
     <script>
-        // --- DOM Elements ---
+        // --- DOM Elements for Portal Navigation ---
+        const gamesListPage = document.getElementById('gamesListPage');
+        const ticTacToeGameContainer = document.getElementById('ticTacToeGameContainer');
+        const ticTacToeCard = document.getElementById('ticTacToeCard');
+        const backToGamesButton = document.getElementById('backToGamesButton');
+
+        // --- Tic Tac Toe Game Script (copied from original) ---
         const boardElement = document.getElementById('board');
         const statusElement = document.getElementById('status');
-        const resetButton = document.getElementById('resetButton');
+        const resetButton = document.getElementById('resetButton'); // Tic Tac Toe's reset
         const messageModal = document.getElementById('messageModal');
         const modalMessageText = document.getElementById('modalMessageText');
         const modalCloseButton = document.getElementById('modalCloseButton');
         const pvpRadio = document.getElementById('pvp');
         const pvcRadio = document.getElementById('pvc');
 
-        // --- Game State ---
-        let currentPlayer = 'X'; // Human is always X
+        let currentPlayer = 'X';
         let humanPlayer = 'X';
         let computerPlayer = 'O';
         let boardState = ['', '', '', '', '', '', '', '', ''];
         let gameActive = true;
-        let gameMode = 'pvp'; // 'pvp' or 'pvc'
+        let gameMode = 'pvp';
 
         const winningCombinations = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-            [0, 4, 8], [2, 4, 6]             // Diagonals
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
         ];
 
-        // --- Functions ---
-
-        /**
-         * Initializes or resets the game board.
-         * Clears the board state, resets the current player, and re-renders the cells.
-         */
         function initializeGame() {
-            currentPlayer = humanPlayer; // Human always starts
+            // console.log("Tic Tac Toe initializeGame called");
+            currentPlayer = humanPlayer;
             boardState = ['', '', '', '', '', '', '', '', ''];
             gameActive = true;
-            gameMode = document.querySelector('input[name="gameMode"]:checked').value;
-            
-            statusElement.textContent = `Player ${currentPlayer}'s turn`;
-            if (gameMode === 'pvc' && currentPlayer === computerPlayer) {
-                statusElement.textContent = `Computer (${computerPlayer})'s turn`;
-            } else if (gameMode === 'pvc' && currentPlayer === humanPlayer) {
-                 statusElement.textContent = `Your (${humanPlayer}) turn`;
+            // Ensure gameMode is read correctly when game starts or restarts
+            const selectedMode = document.querySelector('input[name="gameMode"]:checked');
+            if (selectedMode) { // Check if radio button is found
+                 gameMode = selectedMode.value;
+            } else {
+                gameMode = 'pvp'; // Default if somehow not found
+                if(pvpRadio) pvpRadio.checked = true; // Ensure a default is checked
             }
-
-            statusElement.className = 'text-center text-xl font-semibold mb-4 h-8 text-slate-700'; // Reset status color
+           
+            if (statusElement) { // Check if statusElement exists
+                statusElement.textContent = `Player ${currentPlayer}'s turn`;
+                if (gameMode === 'pvc' && currentPlayer === computerPlayer) {
+                    statusElement.textContent = `Computer (${computerPlayer})'s turn`;
+                } else if (gameMode === 'pvc' && currentPlayer === humanPlayer) {
+                    statusElement.textContent = `Your (${humanPlayer}) turn`;
+                }
+                statusElement.className = 'text-center text-xl font-semibold mb-4 h-8 text-slate-700';
+            }
+            
             renderBoard();
             hideModal();
 
             if (gameMode === 'pvc' && currentPlayer === computerPlayer) {
-                // If computer is set to start (e.g. if human was 'O'), make its move.
-                // For simplicity, human (X) always starts, so this branch might not be hit initially.
                 disableBoardInteraction(true);
                 setTimeout(computerMove, 500);
             } else {
-                 disableBoardInteraction(false);
+                disableBoardInteraction(false);
             }
         }
 
-        /**
-         * Renders the game board cells based on the current boardState.
-         * Adds event listeners to each cell for player interaction.
-         */
         function renderBoard() {
-            boardElement.innerHTML = ''; // Clear previous cells
+            if (!boardElement) return; // Guard against null boardElement
+            boardElement.innerHTML = '';
             boardState.forEach((value, index) => {
                 const cell = document.createElement('div');
                 cell.classList.add('cell', 'bg-white', 'rounded-md', 'shadow');
-                if (value === humanPlayer) {
-                    cell.classList.add('text-pink-500');
-                } else if (value === computerPlayer) {
-                    cell.classList.add('text-blue-500');
-                }
+                if (value === humanPlayer) cell.classList.add('text-pink-500');
+                else if (value === computerPlayer) cell.classList.add('text-blue-500');
                 cell.textContent = value;
                 cell.dataset.index = index;
                 cell.addEventListener('click', handleCellClick);
-                cell.addEventListener('touchend', handleCellClick); // For touch devices
+                cell.addEventListener('touchend', handleCellClick);
                 boardElement.appendChild(cell);
             });
         }
         
-        /**
-         * Disables or enables interaction with the board cells.
-         * @param {boolean} disable - True to disable, false to enable.
-         */
         function disableBoardInteraction(disable) {
+            if (!boardElement) return;
             const cells = boardElement.querySelectorAll('.cell');
             cells.forEach(cell => {
-                if (disable) {
-                    cell.classList.add('disabled');
-                } else {
-                    cell.classList.remove('disabled');
-                }
+                if (disable) cell.classList.add('disabled');
+                else cell.classList.remove('disabled');
             });
         }
 
-
-        /**
-         * Handles a click or tap event on a game cell.
-         * If the cell is empty and the game is active, it updates the board state,
-         * checks for a win or draw, and switches the player.
-         * @param {Event} event - The click or touchend event.
-         */
         function handleCellClick(event) {
-            event.preventDefault(); // Prevent double event firing on touch
+            event.preventDefault();
             const clickedCellIndex = parseInt(event.target.dataset.index);
 
             if (boardState[clickedCellIndex] !== '' || !gameActive || (gameMode === 'pvc' && currentPlayer === computerPlayer)) {
-                return; // Cell already taken, game over, or computer's turn
+                return;
             }
-
             makeMove(clickedCellIndex, currentPlayer);
-
-            if (!gameActive) return; // Game ended after player's move
+            if (!gameActive) return;
 
             if (gameMode === 'pvc') {
-                switchPlayer(); // Switch to computer
-                if (gameActive) { // Check if game is still active for computer's move
+                switchPlayer();
+                if (gameActive) {
                     disableBoardInteraction(true);
-                    setTimeout(computerMove, 700); // Computer "thinks" for a bit
+                    setTimeout(computerMove, 700);
                 }
             } else {
-                switchPlayer(); // PvP mode
+                switchPlayer();
             }
         }
 
-        /**
-         * Processes a move for the given player at the specified index.
-         * @param {number} index - The index of the cell to move to.
-         * @param {string} player - The player making the move ('X' or 'O').
-         */
         function makeMove(index, player) {
             if (boardState[index] !== '' || !gameActive) return;
-
             boardState[index] = player;
             const cellElement = boardElement.querySelector(`.cell[data-index='${index}']`);
-            cellElement.textContent = player;
-            if (player === humanPlayer) {
-                cellElement.classList.add('text-pink-500');
-            } else if (player === computerPlayer) {
-                cellElement.classList.add('text-blue-500');
+            if(cellElement) { // Guard against null cellElement
+                cellElement.textContent = player;
+                if (player === humanPlayer) cellElement.classList.add('text-pink-500');
+                else if (player === computerPlayer) cellElement.classList.add('text-blue-500');
             }
 
             if (checkWin(player)) {
@@ -294,180 +314,137 @@
                     winnerMessage = (player === humanPlayer) ? "You win!" : "Computer wins!";
                 }
                 showModal(winnerMessage);
-                statusElement.textContent = winnerMessage;
-                statusElement.className = 'text-center text-xl font-bold mb-4 h-8 text-emerald-600';
-                disableBoardInteraction(false); // Re-enable for clarity, though game is over
+                if(statusElement) {
+                    statusElement.textContent = winnerMessage;
+                    statusElement.className = 'text-center text-xl font-bold mb-4 h-8 text-emerald-600';
+                }
+                disableBoardInteraction(false);
                 return;
             }
 
             if (checkDraw()) {
                 gameActive = false;
                 showModal("It's a draw!");
-                statusElement.textContent = "It's a draw!";
-                statusElement.className = 'text-center text-xl font-bold mb-4 h-8 text-amber-600';
+                if(statusElement) {
+                    statusElement.textContent = "It's a draw!";
+                    statusElement.className = 'text-center text-xl font-bold mb-4 h-8 text-amber-600';
+                }
                 disableBoardInteraction(false);
                 return;
             }
         }
         
-        /**
-         * Computer AI makes a move.
-         * Simple AI: 1. Win, 2. Block, 3. Center, 4. Random Corner, 5. Random Side
-         */
         function computerMove() {
             if (!gameActive) return;
-
             let move = -1;
-
-            // 1. Check for a winning move
-            for (let i = 0; i < 9; i++) {
+            for (let i = 0; i < 9; i++) { // Check win
                 if (boardState[i] === '') {
                     boardState[i] = computerPlayer;
-                    if (checkWin(computerPlayer)) {
-                        move = i;
-                        boardState[i] = ''; // Reset test move
-                        break;
-                    }
-                    boardState[i] = ''; // Reset test move
+                    if (checkWin(computerPlayer)) { move = i; boardState[i] = ''; break; }
+                    boardState[i] = '';
                 }
             }
-
-            // 2. Check for a blocking move
-            if (move === -1) {
+            if (move === -1) { // Check block
                 for (let i = 0; i < 9; i++) {
                     if (boardState[i] === '') {
                         boardState[i] = humanPlayer;
-                        if (checkWin(humanPlayer)) {
-                            move = i;
-                            boardState[i] = ''; // Reset test move
-                            break;
-                        }
-                        boardState[i] = ''; // Reset test move
+                        if (checkWin(humanPlayer)) { move = i; boardState[i] = ''; break; }
+                        boardState[i] = '';
                     }
                 }
             }
-
-            // 3. Take center if available
-            if (move === -1 && boardState[4] === '') {
-                move = 4;
+            if (move === -1 && boardState[4] === '') move = 4; // Center
+            if (move === -1) { // Corners
+                const corners = [0, 2, 6, 8].filter(index => boardState[index] === '');
+                if (corners.length > 0) move = corners[Math.floor(Math.random() * corners.length)];
+            }
+            if (move === -1) { // Sides
+                const sides = [1, 3, 5, 7].filter(index => boardState[index] === '');
+                if (sides.length > 0) move = sides[Math.floor(Math.random() * sides.length)];
+            }
+            if (move === -1) { // Any available
+                const available = boardState.map((v, i) => v === '' ? i : -1).filter(i => i !== -1);
+                 if (available.length > 0) move = available[Math.floor(Math.random() * available.length)];
             }
 
-            // 4. Take a random available corner
-            if (move === -1) {
-                const corners = [0, 2, 6, 8];
-                const availableCorners = corners.filter(index => boardState[index] === '');
-                if (availableCorners.length > 0) {
-                    move = availableCorners[Math.floor(Math.random() * availableCorners.length)];
-                }
-            }
-
-            // 5. Take a random available side
-            if (move === -1) {
-                const sides = [1, 3, 5, 7];
-                const availableSides = sides.filter(index => boardState[index] === '');
-                if (availableSides.length > 0) {
-                    move = availableSides[Math.floor(Math.random() * availableSides.length)];
-                }
-            }
+            if (move !== -1) makeMove(move, computerPlayer);
             
-            // 6. Fallback: take any available spot (should be covered by 4 & 5 but as a safeguard)
-             if (move === -1) {
-                const availableSpots = boardState.map((val, idx) => val === '' ? idx : -1).filter(idx => idx !== -1);
-                if (availableSpots.length > 0) {
-                    move = availableSpots[Math.floor(Math.random() * availableSpots.length)];
-                }
-            }
-
-
-            if (move !== -1) {
-                makeMove(move, computerPlayer);
-            }
-            
-            disableBoardInteraction(false); // Re-enable board for human player
-            if(gameActive) switchPlayer(); // Switch back to human if game not over
+            disableBoardInteraction(false);
+            if(gameActive) switchPlayer();
         }
 
-
-        /**
-         * Checks if the specified player has won the game.
-         * @param {string} player - The player to check for a win ('X' or 'O').
-         * @returns {boolean} True if the player has a winning combination, false otherwise.
-         */
         function checkWin(player) {
-            for (const combination of winningCombinations) {
-                const [a, b, c] = combination;
-                if (boardState[a] === player && boardState[b] === player && boardState[c] === player) {
-                    return true;
-                }
-            }
-            return false;
+            return winningCombinations.some(combination => 
+                combination.every(index => boardState[index] === player)
+            );
         }
 
-        /**
-         * Highlights the cells that form the winning combination for the given player.
-         * @param {string} player - The player whose winning cells to highlight.
-         */
         function highlightWinningCells(player) {
-            for (const combination of winningCombinations) {
-                const [a, b, c] = combination;
-                if (boardState[a] === player && boardState[b] === player && boardState[c] === player) {
-                    document.querySelector(`.cell[data-index='${a}']`).classList.add('winning-cell');
-                    document.querySelector(`.cell[data-index='${b}']`).classList.add('winning-cell');
-                    document.querySelector(`.cell[data-index='${c}']`).classList.add('winning-cell');
-                    break; // Highlight only the first winning combination found
-                }
+            if (!boardElement) return;
+            const combination = winningCombinations.find(combo => 
+                combo.every(index => boardState[index] === player)
+            );
+            if (combination) {
+                combination.forEach(index => {
+                    const cell = boardElement.querySelector(`.cell[data-index='${index}']`);
+                    if (cell) cell.classList.add('winning-cell');
+                });
             }
         }
 
-        /**
-         * Checks if the game is a draw (all cells are filled and no winner).
-         * @returns {boolean} True if the game is a draw, false otherwise.
-         */
         function checkDraw() {
             return boardState.every(cell => cell !== '') && !checkWin(humanPlayer) && !checkWin(computerPlayer);
         }
 
-        /**
-         * Switches the current player and updates the status display.
-         */
         function switchPlayer() {
             currentPlayer = (currentPlayer === humanPlayer) ? computerPlayer : humanPlayer;
-            
-            if (gameMode === 'pvc') {
-                statusElement.textContent = (currentPlayer === humanPlayer) ? `Your (${humanPlayer}) turn` : `Computer (${computerPlayer})'s turn`;
-            } else {
-                statusElement.textContent = `Player ${currentPlayer}'s turn`;
+            if(statusElement) {
+                if (gameMode === 'pvc') {
+                    statusElement.textContent = (currentPlayer === humanPlayer) ? `Your (${humanPlayer}) turn` : `Computer (${computerPlayer})'s turn`;
+                } else {
+                    statusElement.textContent = `Player ${currentPlayer}'s turn`;
+                }
             }
         }
 
-        /**
-         * Shows the custom modal with a given message.
-         * @param {string} message - The message to display in the modal.
-         */
         function showModal(message) {
-            modalMessageText.textContent = message;
-            messageModal.classList.add('active');
+            if(modalMessageText) modalMessageText.textContent = message;
+            if(messageModal) messageModal.classList.add('active');
         }
 
-        /**
-         * Hides the custom modal.
-         */
         function hideModal() {
-            messageModal.classList.remove('active');
+            if(messageModal) messageModal.classList.remove('active');
         }
 
-        // --- Event Listeners ---
-        resetButton.addEventListener('click', initializeGame);
-        modalCloseButton.addEventListener('click', initializeGame); // Modal button also resets
-        pvpRadio.addEventListener('change', initializeGame);
-        pvcRadio.addEventListener('change', initializeGame);
+        // --- Portal Navigation Logic ---
+        function showGamesList() {
+            if(gamesListPage) gamesListPage.classList.remove('hidden');
+            if(ticTacToeGameContainer) ticTacToeGameContainer.classList.add('hidden');
+            // console.log("Showing games list");
+        }
 
+        function launchTicTacToe() {
+            if(gamesListPage) gamesListPage.classList.add('hidden');
+            if(ticTacToeGameContainer) ticTacToeGameContainer.classList.remove('hidden');
+            initializeGame(); // Initialize/reset Tic Tac Toe when launched
+            // console.log("Launching Tic Tac Toe");
+        }
 
-        // --- Initial Game Setup ---
-        initializeGame();
+        // --- Event Listeners for Portal and Game ---
+        if(ticTacToeCard) ticTacToeCard.addEventListener('click', launchTicTacToe);
+        if(backToGamesButton) backToGamesButton.addEventListener('click', showGamesList);
+        
+        // Tic Tac Toe specific listeners
+        if(resetButton) resetButton.addEventListener('click', initializeGame);
+        if(modalCloseButton) modalCloseButton.addEventListener('click', initializeGame);
+        if(pvpRadio) pvpRadio.addEventListener('change', initializeGame);
+        if(pvcRadio) pvcRadio.addEventListener('change', initializeGame);
 
-        // Add a simple console log to confirm script is running
-        console.log("Tic Tac Toe game script loaded and initialized with AI opponent option.");
+        // --- Initial Page Setup ---
+        showGamesList(); // Show the game list by default
+        // Tic Tac Toe game will be initialized when it's launched via launchTicTacToe()
+        
+        console.log("Game Portal script loaded. Tic Tac Toe embedded.");
     </script>
 </body>
 </html>
