@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation; /* Prevent double tap zoom on mobile */
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #cbd5e1; /* slate-300 */
+            transition: background-color 0.2s ease-in-out;
+        }
+        .cell:hover {
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .winning-cell {
+            background-color: #a7f3d0 !important; /* emerald-200 */
+            color: #065f46 !important; /* emerald-800 */
+        }
+        /* Custom modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Ensure board is centered and scales reasonably on smaller screens */
+        .board-container {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.5rem; /* 8px */
+            width: 100%;
+            max-width: 320px; /* Adjust as needed */
+            margin: 1rem auto;
+        }
+        @media (max-width: 400px) {
+            .cell {
+                font-size: 2.5rem; /* Slightly smaller font for very small screens */
+            }
+            .board-container {
+                gap: 0.25rem; /* 4px */
+            }
+        }
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl w-full max-w-md">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-sky-600">Tic Tac Toe</h1>
+        </header>
+
+        <main>
+            <div id="status" class="text-center text-xl font-semibold mb-4 h-8 text-slate-700">Player X's turn</div>
+
+            <div id="board" class="board-container">
+                </div>
+
+            <div class="mt-8 text-center">
+                <button id="resetButton" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-opacity-50">
+                    Restart Game
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-content">
+            <p id="modalMessageText" class="text-2xl font-semibold mb-6"></p>
+            <button id="modalCloseButton" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-150 ease-in-out">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <footer class="text-center mt-8 text-slate-500 text-sm">
+        <p>Built with HTML, Tailwind CSS, and JavaScript.</p>
+    </footer>
+
+    <script>
+        // --- DOM Elements ---
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const resetButton = document.getElementById('resetButton');
+        const messageModal = document.getElementById('messageModal');
+        const modalMessageText = document.getElementById('modalMessageText');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+
+        // --- Game State ---
+        let currentPlayer = 'X';
+        let boardState = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        const winningCombinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]             // Diagonals
+        ];
+
+        // --- Functions ---
+
+        /**
+         * Initializes or resets the game board.
+         * Clears the board state, resets the current player, and re-renders the cells.
+         */
+        function initializeGame() {
+            currentPlayer = 'X';
+            boardState = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            statusElement.textContent = `Player ${currentPlayer}'s turn`;
+            statusElement.className = 'text-center text-xl font-semibold mb-4 h-8 text-slate-700'; // Reset status color
+            renderBoard();
+            hideModal();
+        }
+
+        /**
+         * Renders the game board cells based on the current boardState.
+         * Adds event listeners to each cell for player interaction.
+         */
+        function renderBoard() {
+            boardElement.innerHTML = ''; // Clear previous cells
+            boardState.forEach((value, index) => {
+                const cell = document.createElement('div');
+                cell.classList.add('cell', 'bg-white', 'rounded-md', 'shadow');
+                if (value === 'X') {
+                    cell.classList.add('text-pink-500');
+                } else if (value === 'O') {
+                    cell.classList.add('text-blue-500');
+                }
+                cell.textContent = value;
+                cell.dataset.index = index;
+                cell.addEventListener('click', handleCellClick);
+                cell.addEventListener('touchend', handleCellClick); // For touch devices
+                boardElement.appendChild(cell);
+            });
+        }
+
+        /**
+         * Handles a click or tap event on a game cell.
+         * If the cell is empty and the game is active, it updates the board state,
+         * checks for a win or draw, and switches the player.
+         * @param {Event} event - The click or touchend event.
+         */
+        function handleCellClick(event) {
+            event.preventDefault(); // Prevent double event firing on touch
+            const clickedCellIndex = parseInt(event.target.dataset.index);
+
+            if (boardState[clickedCellIndex] !== '' || !gameActive) {
+                return; // Cell already taken or game over
+            }
+
+            boardState[clickedCellIndex] = currentPlayer;
+            event.target.textContent = currentPlayer;
+            if (currentPlayer === 'X') {
+                event.target.classList.add('text-pink-500');
+            } else {
+                event.target.classList.add('text-blue-500');
+            }
+
+
+            if (checkWin()) {
+                gameActive = false;
+                highlightWinningCells();
+                showModal(`Player ${currentPlayer} wins!`);
+                statusElement.textContent = `Player ${currentPlayer} wins!`;
+                statusElement.className = 'text-center text-xl font-bold mb-4 h-8 text-emerald-600';
+                return;
+            }
+
+            if (checkDraw()) {
+                gameActive = false;
+                showModal("It's a draw!");
+                statusElement.textContent = "It's a draw!";
+                statusElement.className = 'text-center text-xl font-bold mb-4 h-8 text-amber-600';
+                return;
+            }
+
+            switchPlayer();
+        }
+
+        /**
+         * Checks if the current player has won the game.
+         * @returns {boolean} True if the current player has a winning combination, false otherwise.
+         */
+        function checkWin() {
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Highlights the cells that form the winning combination.
+         */
+        function highlightWinningCells() {
+            for (const combination of winningCombinations) {
+                const [a, b, c] = combination;
+                if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                    document.querySelector(`.cell[data-index='${a}']`).classList.add('winning-cell');
+                    document.querySelector(`.cell[data-index='${b}']`).classList.add('winning-cell');
+                    document.querySelector(`.cell[data-index='${c}']`).classList.add('winning-cell');
+                    break; // Highlight only the first winning combination found
+                }
+            }
+        }
+
+        /**
+         * Checks if the game is a draw (all cells are filled and no winner).
+         * @returns {boolean} True if the game is a draw, false otherwise.
+         */
+        function checkDraw() {
+            return boardState.every(cell => cell !== '');
+        }
+
+        /**
+         * Switches the current player and updates the status display.
+         */
+        function switchPlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusElement.textContent = `Player ${currentPlayer}'s turn`;
+        }
+
+        /**
+         * Shows the custom modal with a given message.
+         * @param {string} message - The message to display in the modal.
+         */
+        function showModal(message) {
+            modalMessageText.textContent = message;
+            messageModal.classList.add('active');
+        }
+
+        /**
+         * Hides the custom modal.
+         */
+        function hideModal() {
+            messageModal.classList.remove('active');
+        }
+
+        // --- Event Listeners ---
+        resetButton.addEventListener('click', initializeGame);
+        modalCloseButton.addEventListener('click', initializeGame); // Modal button also resets
+
+        // --- Initial Game Setup ---
+        initializeGame();
+
+        // Add a simple console log to confirm script is running
+        console.log("Tic Tac Toe game script loaded and initialized.");
+    </script>
+</body>
+</html>
